@@ -1,85 +1,63 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace KataTennis
 {
     public class TennisGame1 : ITennisGame
     {
-        private int m_score1 = 0;
-        private int m_score2 = 0;
-        private string player1Name;
-        private string player2Name;
+        private const int MAX_SCORE = 4;
+        private int _mScore1;
+        private int _mScore2;
+        private readonly string _player1Name;
+        private readonly string _player2Name;
+
+        private readonly IReadOnlyDictionary<int, string> _scoreFromIntToString;
 
         public TennisGame1(string player1Name, string player2Name)
         {
-            this.player1Name = player1Name;
-            this.player2Name = player2Name;
+            _player1Name = player1Name;
+            _player2Name = player2Name;
+            _scoreFromIntToString = new Dictionary<int, string>()
+            {
+                {0, "Love" },
+                {1, "Fifteen" },
+                {2, "Thirty" },
+                {3, "Forty"}
+            };
         }
 
         public void WonPoint(string playerName)
         {
-            if (playerName == "player1")
-                m_score1 += 1;
+            if (playerName == _player1Name)
+                _mScore1++;
             else
-                m_score2 += 1;
+                _mScore2++;
         }
 
         public string GetScore()
         {
-            string score = "";
-            var tempScore = 0;
-            if (m_score1 == m_score2)
+            if (_mScore1 == _mScore2)
             {
-                switch (m_score1)
-                {
-                    case 0:
-                        score = "Love-All";
-                        break;
-                    case 1:
-                        score = "Fifteen-All";
-                        break;
-                    case 2:
-                        score = "Thirty-All";
-                        break;
-                    default:
-                        score = "Deuce";
-                        break;
+                return IsDeuce() ? "Deuce" : $"{_scoreFromIntToString[_mScore1]}-All";
+            }
 
-                }
-            }
-            else if (m_score1 >= 4 || m_score2 >= 4)
+            if (_mScore1 >= MAX_SCORE || _mScore2 >= MAX_SCORE)
             {
-                var minusResult = m_score1 - m_score2;
-                if (minusResult == 1) score = "Advantage player1";
-                else if (minusResult == -1) score = "Advantage player2";
-                else if (minusResult >= 2) score = "Win for player1";
-                else score = "Win for player2";
+                var playerName = _mScore1 > _mScore2 ? _player1Name : _player2Name;
+                return IsAdvantage() ? $"Advantage {playerName}" : $"Win for {playerName}";
             }
-            else
-            {
-                for (var i = 1; i < 3; i++)
-                {
-                    if (i == 1) tempScore = m_score1;
-                    else { score += "-"; tempScore = m_score2; }
-                    switch (tempScore)
-                    {
-                        case 0:
-                            score += "Love";
-                            break;
-                        case 1:
-                            score += "Fifteen";
-                            break;
-                        case 2:
-                            score += "Thirty";
-                            break;
-                        case 3:
-                            score += "Forty";
-                            break;
-                    }
-                }
-            }
-            return score;
+
+            return $"{_scoreFromIntToString[_mScore1]}-{_scoreFromIntToString[_mScore2]}";
+        }
+
+        private bool IsDeuce()
+        {
+            return _mScore1 >= 3 && _mScore2 >= 3;
+        }
+
+        private bool IsAdvantage()
+        {
+            return Math.Abs(_mScore1 - _mScore2) == 1;
         }
     }
 }
