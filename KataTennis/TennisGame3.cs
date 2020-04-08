@@ -1,46 +1,60 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace KataTennis
 {
     public class TennisGame3 : ITennisGame
     {
-        private int p2;
-        private int p1;
-        private string p1N;
-        private string p2N;
+        private const int FORTY = 3;
+        private const string ALL = "All";
+        private int _scorePlayer2;
+        private int _scorePlayer1;
+        private readonly string _player1Name;
+        private readonly string _player2Name;
+        private readonly string[] _scoreLabels;
 
         public TennisGame3(string player1Name, string player2Name)
         {
-            this.p1N = player1Name;
-            this.p2N = player2Name;
+            _player1Name = player1Name;
+            _player2Name = player2Name;
+            _scoreLabels = new[] { "Love", "Fifteen", "Thirty", "Forty" };
         }
 
         public string GetScore()
         {
-            string s;
-            if ((p1 < 4 && p2 < 4) && (p1 + p2 < 6))
+            if (IsDeuce())
+                return "Deuce";
+
+            if (_scorePlayer1 <= FORTY && _scorePlayer2 <= FORTY)
             {
-                string[] p = { "Love", "Fifteen", "Thirty", "Forty" };
-                s = p[p1];
-                return (p1 == p2) ? s + "-All" : s + "-" + p[p2];
+                return SameScore() ? $"{_scoreLabels[_scorePlayer1]}-{ALL}" : 
+                    $"{_scoreLabels[_scorePlayer1]}-{_scoreLabels[_scorePlayer2]}";
             }
-            else
-            {
-                if (p1 == p2)
-                    return "Deuce";
-                s = p1 > p2 ? p1N : p2N;
-                return ((p1 - p2) * (p1 - p2) == 1) ? "Advantage " + s : "Win for " + s;
-            }
+
+            var playerName = _scorePlayer1 > _scorePlayer2 ? _player1Name : _player2Name;
+            return IsAdvantage() ? $"Advantage {playerName}" : $"Win for {playerName}";
+        }
+
+        private bool IsDeuce()
+        {
+            return SameScore() && _scorePlayer1 >= FORTY;
+        }
+
+        private bool SameScore()
+        {
+            return _scorePlayer1 == _scorePlayer2;
+        }
+
+        private bool IsAdvantage()
+        {
+            return Math.Abs(_scorePlayer1 - _scorePlayer2) == 1;
         }
 
         public void WonPoint(string playerName)
         {
-            if (playerName == "player1")
-                this.p1 += 1;
+            if (playerName == _player1Name)
+                _scorePlayer1++;
             else
-                this.p2 += 1;
+                _scorePlayer2++;
         }
 
     }
