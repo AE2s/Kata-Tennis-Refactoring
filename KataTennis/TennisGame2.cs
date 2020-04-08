@@ -1,145 +1,88 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace KataTennis
 {
     public class TennisGame2 : ITennisGame
     {
-        private int p1point;
-        private int p2point;
+        private const int FORTY = 3;
+        private int _player1Point;
+        private int _player2Point;
 
-        private string p1res = "";
-        private string p2res = "";
-        private string player1Name;
-        private string player2Name;
+        private string _p1Result = "";
+        private string _p2Result = "";
+        private readonly string _player1Name;
+        private readonly string _player2Name;
+        private readonly IReadOnlyDictionary<int, string> _scoreFromIntToString;
 
         public TennisGame2(string player1Name, string player2Name)
         {
-            this.player1Name = player1Name;
-            p1point = 0;
-            this.player2Name = player2Name;
+            _player1Name = player1Name;
+            _player2Name = player2Name;
+            _player1Point = 0;
+            _player2Point = 0;
+            _scoreFromIntToString = new Dictionary<int, string>()
+            {
+                {0, "Love" },
+                {1, "Fifteen" },
+                {2, "Thirty" },
+                {3, "Forty"}
+            };
         }
 
         public string GetScore()
         {
-            var score = "";
-            if (p1point == p2point && p1point < 3)
-            {
-                if (p1point == 0)
-                    score = "Love";
-                if (p1point == 1)
-                    score = "Fifteen";
-                if (p1point == 2)
-                    score = "Thirty";
-                score += "-All";
-            }
-            if (p1point == p2point && p1point > 2)
-                score = "Deuce";
+            if (_player1Point == _player2Point)
+                return IsDeuce() ? "Deuce" : $"{_scoreFromIntToString[_player1Point]}-All";
 
-            if (p1point > 0 && p2point == 0)
-            {
-                if (p1point == 1)
-                    p1res = "Fifteen";
-                if (p1point == 2)
-                    p1res = "Thirty";
-                if (p1point == 3)
-                    p1res = "Forty";
+            string playerName = _player1Point > _player2Point ? _player1Name : _player2Name;
 
-                p2res = "Love";
-                score = p1res + "-" + p2res;
-            }
-            if (p2point > 0 && p1point == 0)
-            {
-                if (p2point == 1)
-                    p2res = "Fifteen";
-                if (p2point == 2)
-                    p2res = "Thirty";
-                if (p2point == 3)
-                    p2res = "Forty";
+            if (IsAdvantage())
+                return $"Advantage {playerName}";
 
-                p1res = "Love";
-                score = p1res + "-" + p2res;
-            }
+            if (IsWinner())
+                return $"Win for {playerName}";
 
-            if (p1point > p2point && p1point < 4)
-            {
-                if (p1point == 2)
-                    p1res = "Thirty";
-                if (p1point == 3)
-                    p1res = "Forty";
-                if (p2point == 1)
-                    p2res = "Fifteen";
-                if (p2point == 2)
-                    p2res = "Thirty";
-                score = p1res + "-" + p2res;
-            }
-            if (p2point > p1point && p2point < 4)
-            {
-                if (p2point == 2)
-                    p2res = "Thirty";
-                if (p2point == 3)
-                    p2res = "Forty";
-                if (p1point == 1)
-                    p1res = "Fifteen";
-                if (p1point == 2)
-                    p1res = "Thirty";
-                score = p1res + "-" + p2res;
-            }
+            if (_scoreFromIntToString.ContainsKey(_player2Point))
+                _p2Result = _scoreFromIntToString[_player2Point];
+            
+            if (_scoreFromIntToString.ContainsKey(_player1Point))
+                _p1Result = _scoreFromIntToString[_player1Point];
 
-            if (p1point > p2point && p2point >= 3)
-            {
-                score = "Advantage player1";
-            }
-
-            if (p2point > p1point && p1point >= 3)
-            {
-                score = "Advantage player2";
-            }
-
-            if (p1point >= 4 && p2point >= 0 && (p1point - p2point) >= 2)
-            {
-                score = "Win for player1";
-            }
-            if (p2point >= 4 && p1point >= 0 && (p2point - p1point) >= 2)
-            {
-                score = "Win for player2";
-            }
-            return score;
+            return $"{_p1Result}-{_p2Result}";
         }
 
-        public void SetP1Score(int number)
+        private bool IsWinner()
         {
-            for (int i = 0; i < number; i++)
-            {
-                P1Score();
-            }
+            return _player1Point > FORTY || _player2Point > FORTY && Math.Abs(_player1Point - _player2Point) >= 2;
         }
 
-        public void SetP2Score(int number)
+        private bool IsAdvantage()
         {
-            for (var i = 0; i < number; i++)
-            {
-                P2Score();
-            }
+            return Math.Abs(_player1Point - _player2Point) == 1 && _player1Point >= FORTY && _player2Point >= FORTY;
         }
 
-        private void P1Score()
+        private bool IsDeuce()
         {
-            p1point++;
+            return _player1Point >= FORTY;
         }
 
-        private void P2Score()
+        private void IncrementPlayer1Score()
         {
-            p2point++;
+            _player1Point++;
+        }
+
+        private void IncrementPlayer2Score()
+        {
+            _player2Point++;
         }
 
         public void WonPoint(string player)
         {
-            if (player == "player1")
-                P1Score();
+            if (player == _player1Name)
+                IncrementPlayer1Score();
             else
-                P2Score();
+                IncrementPlayer2Score();
         }
 
     }
